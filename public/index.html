@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Batata Secure Hub</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <canvas id="stars"></canvas>
+  <div class="noise"></div>
+  <div class="cursor-glow" id="cursorGlow"></div>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <header class="site-header">
+    <nav class="nav container">
+      <a href="/" class="brand"><span class="brand-icon"></span><span>Batata Secure Hub</span></a>
+      <div class="nav-links">
+        <a class="active" href="/">Home</a>
+        <a href="/games">Games</a>
+        <a href="/jogo">Jogo</a>
+        <a href="/admin" id="adminLink" style="display:none">Admin</a>
+        <button id="logoutBtn">Sair</button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero hero-grid container">
+      <div>
+        <span class="hero-pill">Login obrigatório • painel admin • controle total</span>
+        <h1>Seu site agora pode ficar fechado pra quem não tem conta.</h1>
+        <p class="hero-text">Esse pack já veio com login obrigatório, criação de contas só por admin, ban temporário, liberação pública por tempo limitado e logout.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="/admin">Abrir painel</a>
+          <a class="btn btn-secondary" href="/games">Ver área protegida</a>
+        </div>
+      </div>
+      <aside class="hero-side">
+        <span class="section-tag">Sessão atual</span>
+        <h2 id="welcomeName">Carregando...</h2>
+        <p id="sessionText">Verificando sessão.</p>
+        <div class="grid grid-3">
+          <div class="kpi"><strong id="kpiAuth">--</strong><span>Autenticação</span></div>
+          <div class="kpi"><strong id="kpiMode">--</strong><span>Modo do site</span></div>
+          <div class="kpi"><strong id="kpiRole">--</strong><span>Permissão</span></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="section container">
+      <div class="section-head">
+        <div>
+          <span class="section-tag">Recursos</span>
+          <h2>O que já ficou pronto</h2>
+        </div>
+      </div>
+      <div class="grid grid-3">
+        <article class="card"><h2>Cadastro fechado</h2><p>Ninguém cria conta pelo site. Só o admin consegue criar usuários pelo painel.</p></article>
+        <article class="card"><h2>Ban temporário</h2><p>Você pode banir usuários por minutos, horas ou dias, do jeito que quiser.</p></article>
+        <article class="card"><h2>Abertura global</h2><p>O admin consegue liberar o site inteiro pra todos por um tempo limitado.</p></article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer container">Batata Secure Hub © 2026</footer>
+
+  <script src="/assets/js/ui.js"></script>
+  <script>
+    async function boot() {
+      const res = await fetch('/api/session');
+      const data = await res.json();
+      const user = data.user;
+      document.getElementById('welcomeName').textContent = user ? `Salve, ${user.username}` : 'Acesso público ativo';
+      document.getElementById('sessionText').textContent = data.publicOpen
+        ? `O site está liberado até ${new Date(data.publicAccessUntil).toLocaleString('pt-BR')}.`
+        : 'O acesso está fechado e controlado por login.';
+      document.getElementById('kpiAuth').textContent = user ? 'ON' : 'OPEN';
+      document.getElementById('kpiMode').textContent = data.publicOpen ? 'Público' : 'Privado';
+      document.getElementById('kpiRole').textContent = user ? user.role : 'visitante';
+      if (user?.role === 'admin') document.getElementById('adminLink').style.display = 'inline-flex';
+    }
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await fetch('/api/logout', { method: 'POST' });
+      window.location.href = '/login';
+    });
+    boot();
+  </script>
+</body>
+</html>

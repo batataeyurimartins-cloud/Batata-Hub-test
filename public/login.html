@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login • Batata Secure Hub</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <canvas id="stars"></canvas>
+  <div class="noise"></div>
+  <div class="cursor-glow" id="cursorGlow"></div>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <main class="auth-wrap">
+    <section class="auth-box">
+      <div class="auth-head">
+        <span class="hero-pill">Acesso protegido</span>
+        <h1>Entrar no Batata Secure Hub</h1>
+        <p class="hero-text">Sem conta criada por admin, não entra. Cadastro público foi removido.</p>
+      </div>
+
+      <div id="flash" class="flash"></div>
+
+      <form id="loginForm" class="stack">
+        <label class="field">
+          <span>Usuário</span>
+          <input name="username" placeholder="Seu nome de usuário" required>
+        </label>
+
+        <label class="field">
+          <span>Senha</span>
+          <input name="password" type="password" placeholder="Sua senha" required>
+        </label>
+
+        <button class="btn btn-primary" type="submit">Entrar</button>
+      </form>
+
+      <div class="status-banner small" id="publicBanner" style="display:none"></div>
+
+      <div class="demo-box" style="margin-top:18px">
+        <strong>Conta inicial do projeto</strong>
+        <p class="auth-note">Usuário: <b>admin</b><br>Senha: <b>admin123</b></p>
+        <p class="auth-note">Troca essa senha assim que abrir o painel.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="/assets/js/ui.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
+    if (error) setFlash(error, 'error');
+
+    fetch('/api/session').then(r => r.json()).then(data => {
+      if (data.canAccessSite && data.authenticated) {
+        window.location.href = '/';
+        return;
+      }
+      if (data.publicOpen && data.publicAccessUntil) {
+        const box = document.getElementById('publicBanner');
+        box.style.display = 'block';
+        box.textContent = 'O site está liberado para todos até ' + new Date(data.publicAccessUntil).toLocaleString('pt-BR') + '.';
+      }
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = new FormData(e.currentTarget);
+      const payload = Object.fromEntries(form.entries());
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) return setFlash(data.error || 'Falha no login.');
+      window.location.href = '/';
+    });
+  </script>
+</body>
+</html>

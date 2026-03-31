@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogo • Batata Secure Hub</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <canvas id="stars"></canvas>
+  <div class="noise"></div>
+  <div class="cursor-glow" id="cursorGlow"></div>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <header class="site-header">
+    <nav class="nav container">
+      <a href="/" class="brand"><span class="brand-icon"></span><span>Batata Secure Hub</span></a>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/games">Games</a>
+        <a class="active" href="/jogo">Jogo</a>
+        <a href="/admin" id="adminLink" style="display:none">Admin</a>
+      </div>
+    </nav>
+  </header>
+  <main class="container">
+    <section class="hero hero-grid">
+      <div>
+        <span class="hero-pill">Página individual protegida</span>
+        <h1>Player do jogo fechado por autenticação</h1>
+        <p class="hero-text">Esse é o modelo da tua página individual. No teu projeto real, aqui entra o iframe e os dados do jogo.</p>
+      </div>
+      <aside class="card">
+        <span class="section-tag">Status</span>
+        <h2>Proteção funcionando</h2>
+        <p>Se a pessoa não tiver login, ela nem chega nessa rota.</p>
+      </aside>
+    </section>
+  </main>
+  <script src="/assets/js/ui.js"></script>
+  <script>
+    fetch('/api/session').then(r => r.json()).then(({ user }) => {
+      if (user?.role === 'admin') document.getElementById('adminLink').style.display = 'inline-flex';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel • Batata Secure Hub</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <canvas id="stars"></canvas>
+  <div class="noise"></div>
+  <div class="cursor-glow" id="cursorGlow"></div>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <header class="site-header">
+    <nav class="nav container">
+      <a href="/" class="brand"><span class="brand-icon"></span><span>Batata Secure Hub</span></a>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/games">Games</a>
+        <a href="/jogo">Jogo</a>
+        <a class="active" href="/admin">Admin</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <span class="hero-pill">Painel administrativo</span>
+      <h1>Controle total das contas e do acesso ao site</h1>
+      <p class="hero-text">Criar conta, excluir, banir por tempo, liberar o site por minutos e acompanhar ações recentes.</p>
+      <div id="flash" class="flash"></div>
+    </section>
+
+    <section class="split section">
+      <section class="panel stack">
+        <div>
+          <span class="section-tag">Criar conta</span>
+          <h2>Novo usuário</h2>
+        </div>
+        <form id="createUserForm" class="stack">
+          <label class="field"><span>Username</span><input name="username" required></label>
+          <label class="field"><span>Senha</span><input name="password" type="password" required></label>
+          <label class="field"><span>Permissão</span>
+            <select name="role">
+              <option value="user">user</option>
+              <option value="admin">admin</option>
+            </select>
+          </label>
+          <button class="btn btn-primary" type="submit">Criar conta</button>
+        </form>
+      </section>
+
+      <section class="panel stack">
+        <div>
+          <span class="section-tag">Acesso público</span>
+          <h2>Liberar o site pra todos</h2>
+        </div>
+        <form id="publicAccessForm" class="stack">
+          <label class="field"><span>Minutos liberados</span><input name="minutes" type="number" min="1" value="60" required></label>
+          <div class="hero-actions">
+            <button class="btn btn-primary" type="submit">Liberar por tempo</button>
+            <button class="btn btn-danger" id="closePublicBtn" type="button">Fechar agora</button>
+          </div>
+        </form>
+        <div class="status-banner small" id="publicStatus">Carregando status...</div>
+      </section>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <span class="section-tag">Usuários</span>
+          <h2>Gerenciar contas</h2>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Usuário</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Ban até</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="usersTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <span class="section-tag">Auditoria</span>
+          <h2>Últimas ações</h2>
+        </div>
+      </div>
+      <pre class="log-box" id="logsBox">Carregando logs...</pre>
+    </section>
+  </main>
+
+  <script src="/assets/js/ui.js"></script>
+  <script>
+    async function api(url, options = {}) {
+      const res = await fetch(url, {
+        headers: { 'Content-Type': 'application/json' },
+        ...options
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Erro inesperado.');
+      return data;
+    }
+
+    function formatDate(value) {
+      return value ? new Date(value).toLocaleString('pt-BR') : '—';
+    }
+
+    function renderUsers(users) {
+      const tbody = document.getElementById('usersTable');
+      tbody.innerHTML = users.map(user => {
+        const banned = user.bannedUntil && new Date(user.bannedUntil).getTime() > Date.now();
+        return `
+          <tr>
+            <td><strong style="color:#fff">${user.username}</strong></td>
+            <td><span class="badge ${user.role}">${user.role}</span></td>
+            <td>
+              <span class="badge ${user.isActive ? 'active' : 'banned'}">${user.isActive ? 'ativo' : 'desativado'}</span>
+              ${banned ? '<span class="badge banned">banido</span>' : ''}
+            </td>
+            <td>${formatDate(user.bannedUntil)}</td>
+            <td>
+              <div class="row-actions">
+                <button onclick="act('${user.id}','ban')">Ban 60m</button>
+                <button onclick="act('${user.id}','unban')">Desbanir</button>
+                <button onclick="act('${user.id}','enable')">Ativar</button>
+                <button onclick="act('${user.id}','disable')">Desativar</button>
+                <button onclick="resetPass('${user.id}')">Nova senha</button>
+                ${user.username !== 'admin' ? `<button onclick="act('${user.id}','delete')">Excluir</button>` : ''}
+              </div>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+
+    function renderLogs(logs) {
+      document.getElementById('logsBox').textContent = logs.map(log => {
+        return `[${new Date(log.createdAt).toLocaleString('pt-BR')}] ${log.by} -> ${log.action} -> ${log.target}${log.details ? ' | ' + log.details : ''}`;
+      }).join('\n');
+    }
+
+    function renderPublicStatus(settings) {
+      const el = document.getElementById('publicStatus');
+      if (settings.publicAccessUntil && new Date(settings.publicAccessUntil).getTime() > Date.now()) {
+        el.textContent = 'Site aberto para todos até ' + new Date(settings.publicAccessUntil).toLocaleString('pt-BR');
+      } else {
+        el.textContent = 'Site fechado. Login obrigatório ativo.';
+      }
+    }
+
+    async function loadState() {
+      try {
+        const data = await api('/api/admin/state');
+        renderUsers(data.users);
+        renderLogs(data.auditLogs);
+        renderPublicStatus(data.settings);
+      } catch (err) {
+        setFlash(err.message);
+        if (/Acesso negado/i.test(err.message)) setTimeout(() => window.location.href = '/', 900);
+      }
+    }
+
+    async function act(id, action) {
+      try {
+        let body = { action };
+        if (action === 'ban') body.minutes = 60;
+        await api('/api/admin/users/' + id, { method: 'PATCH', body: JSON.stringify(body) });
+        setFlash('Ação aplicada com sucesso.', 'success');
+        loadState();
+      } catch (err) {
+        setFlash(err.message);
+      }
+    }
+
+    async function resetPass(id) {
+      const password = prompt('Nova senha:');
+      if (!password) return;
+      try {
+        await api('/api/admin/users/' + id, {
+          method: 'PATCH',
+          body: JSON.stringify({ action: 'reset_password', password })
+        });
+        setFlash('Senha redefinida.', 'success');
+        loadState();
+      } catch (err) {
+        setFlash(err.message);
+      }
+    }
+
+    document.getElementById('createUserForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = Object.fromEntries(new FormData(e.currentTarget).entries());
+      try {
+        await api('/api/admin/users', { method: 'POST', body: JSON.stringify(payload) });
+        e.currentTarget.reset();
+        setFlash('Conta criada com sucesso.', 'success');
+        loadState();
+      } catch (err) {
+        setFlash(err.message);
+      }
+    });
+
+    document.getElementById('publicAccessForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const minutes = Number(new FormData(e.currentTarget).get('minutes'));
+      try {
+        await api('/api/admin/settings/public-access', {
+          method: 'PATCH',
+          body: JSON.stringify({ action: 'open', minutes })
+        });
+        setFlash('Site liberado com sucesso.', 'success');
+        loadState();
+      } catch (err) {
+        setFlash(err.message);
+      }
+    });
+
+    document.getElementById('closePublicBtn').addEventListener('click', async () => {
+      try {
+        await api('/api/admin/settings/public-access', {
+          method: 'PATCH',
+          body: JSON.stringify({ action: 'close' })
+        });
+        setFlash('Modo público encerrado.', 'success');
+        loadState();
+      } catch (err) {
+        setFlash(err.message);
+      }
+    });
+
+    loadState();
+    window.act = act;
+    window.resetPass = resetPass;
+  </script>
+</body>
+</html>
