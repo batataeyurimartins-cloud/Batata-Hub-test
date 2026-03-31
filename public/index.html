@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Batata Protected</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <canvas id="stars"></canvas>
+  <div class="noise"></div>
+  <div class="cursor-glow" id="cursorGlow"></div>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <header class="site-header">
+    <nav class="nav container">
+      <a href="/" class="brand"><span class="brand-icon"></span><span>Batata Protected</span></a>
+      <div class="nav-links">
+        <a class="active" href="/">Início</a>
+        <a href="/games">Jogos</a>
+        <a href="/jogo">Player</a>
+        <a href="/admin" id="adminLink" style="display:none;">Admin</a>
+        <button class="ghost-btn" id="logoutBtn">Sair</button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero hero-grid container">
+      <div>
+        <span class="hero-pill">Login obrigatório • painel admin • controle total</span>
+        <h1>Seu site agora pode ficar fechado pra quem não tem conta.</h1>
+        <p class="hero-text">Já deixei a base pronta com login, conta admin, criação de usuários só pelo painel, ban temporário e modo público com tempo limitado.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="/admin">Abrir painel</a>
+          <a class="btn btn-secondary" href="/games">Ver área protegida</a>
+        </div>
+      </div>
+      <aside class="card">
+        <span class="section-tag">Status atual</span>
+        <h2>Proteção ativa</h2>
+        <div class="stack">
+          <div class="inline-user"><span class="badge" id="roleBadge">...</span><span id="whoami">Carregando...</span></div>
+          <div class="inline-user"><span class="badge" id="accessBadge">...</span><span id="accessText">Carregando...</span></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="section container">
+      <div class="stats">
+        <article class="stat"><strong>Sem cadastro público</strong><span>Somente admin cria conta</span></article>
+        <article class="stat"><strong>Ban temporário</strong><span>Por minutos, horas ou dias</span></article>
+        <article class="stat"><strong>Modo público</strong><span>Abre pra todos por tempo limitado</span></article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer container">
+    <p>Batata Protected © 2026 • versão fechada do teu site</p>
+  </footer>
+
+  <script src="/assets/js/ui.js"></script>
+  <script>
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+    getSession().then((session) => {
+      const roleBadge = document.getElementById('roleBadge');
+      const whoami = document.getElementById('whoami');
+      const accessBadge = document.getElementById('accessBadge');
+      const accessText = document.getElementById('accessText');
+      if (session.user) {
+        roleBadge.className = `badge ${session.user.role}`;
+        roleBadge.textContent = session.user.role === 'admin' ? 'ADMIN' : 'USER';
+        whoami.textContent = `Logado como ${session.user.username}`;
+        if (session.user.role === 'admin') document.getElementById('adminLink').style.display = 'inline-flex';
+      } else {
+        roleBadge.className = 'badge public';
+        roleBadge.textContent = 'PÚBLICO';
+        whoami.textContent = 'Ninguém logado agora';
+      }
+
+      if (session.publicOpen) {
+        accessBadge.className = 'badge public';
+        accessBadge.textContent = 'SITE ABERTO';
+        accessText.textContent = `Liberado para todos até ${new Date(session.publicAccessUntil).toLocaleString('pt-BR')}`;
+      } else {
+        accessBadge.className = 'badge off';
+        accessBadge.textContent = 'SITE FECHADO';
+        accessText.textContent = 'Somente contas autorizadas podem entrar';
+      }
+    });
+  </script>
+</body>
+</html>

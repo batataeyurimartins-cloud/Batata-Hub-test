@@ -1,0 +1,27 @@
+{
+  "settings": {
+    "publicAccessUntil": null,
+    "siteTitle": "Batata Protected"
+  },
+  "users": [
+    {
+      "id": "59f0b249-d778-48e1-a855-6f4d20cb9a0b",
+      "username": "admin",
+      "passwordHash": "c5d8d79bcc2d30c129cfb5e6fe2f3f5f:8f698c47e2eb47c015e89a12d6aba9ebf016fe247ea7918e4ec5e8488b46afed109ab3148ae0b2b30cf21914f59b38871d292df68fef44b9d2ddc5cbc0307467",
+      "role": "admin",
+      "bannedUntil": null,
+      "isActive": true,
+      "createdAt": "2026-03-31T22:29:48.935Z"
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": "3bc906a2-b891-42ce-b758-8098511f1229",
+      "action": "seed_admin",
+      "by": "system",
+      "target": "admin",
+      "details": "Conta admin inicial criada automaticamente.",
+      "createdAt": "2026-03-31T22:29:48.935Z"
+    }
+  ]
+}

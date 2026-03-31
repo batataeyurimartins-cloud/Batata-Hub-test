@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Player • Batata Protected</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <canvas id="stars"></canvas>
+  <div class="noise"></div>
+  <div class="cursor-glow" id="cursorGlow"></div>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <header class="site-header">
+    <nav class="nav container">
+      <a href="/" class="brand"><span class="brand-icon"></span><span>Batata Protected</span></a>
+      <div class="nav-links">
+        <a href="/">Início</a>
+        <a href="/games">Jogos</a>
+        <a class="active" href="/jogo">Player</a>
+        <a href="/admin" id="adminLink" style="display:none;">Admin</a>
+        <button class="ghost-btn" id="logoutBtn">Sair</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="hero hero-grid">
+      <div>
+        <span class="hero-pill">Página individual protegida</span>
+        <h1>O player também ficou fechado</h1>
+        <p class="hero-text">Se a pessoa não tiver conta, ela nem chega aqui. Depois é só trocar esse box pelo iframe real do teu jogo.</p>
+      </div>
+      <aside class="card">
+        <span class="section-tag">Info</span>
+        <h2>Pronto pra adaptar</h2>
+        <p>Esse bloco foi deixado simples pra você encaixar teu player original sem mexer na proteção.</p>
+      </aside>
+    </section>
+
+    <section class="section">
+      <div class="mock-player">
+        <div>
+          <strong>Área do iframe do jogo</strong>
+          <p class="muted">Substitui esse box pelo teu player real quando quiser.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer container">
+    <p>Player protegido • Batata Protected</p>
+  </footer>
+
+  <script src="/assets/js/ui.js"></script>
+  <script>
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+    getSession().then((session) => {
+      if (session.user?.role === 'admin') document.getElementById('adminLink').style.display = 'inline-flex';
+    });
+  </script>
+</body>
+</html>

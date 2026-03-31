@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login • Batata Protected</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <canvas id="stars"></canvas>
+  <div class="noise"></div>
+  <div class="cursor-glow" id="cursorGlow"></div>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <main class="auth-wrap">
+    <section class="auth-box">
+      <div class="auth-head">
+        <span class="hero-pill">Acesso protegido</span>
+        <h1>Entrar no Batata Protected</h1>
+        <p class="hero-text">Sem conta criada por admin, não entra. Cadastro público foi removido.</p>
+      </div>
+
+      <div id="flash" class="flash"></div>
+      <div id="publicBanner" class="status-banner small"></div>
+
+      <form id="loginForm" class="stack" style="margin-top:18px;">
+        <label class="field">
+          <span>Usuário</span>
+          <input name="username" placeholder="Seu usuário" required>
+        </label>
+        <label class="field">
+          <span>Senha</span>
+          <input name="password" type="password" placeholder="Sua senha" required>
+        </label>
+        <button class="btn btn-primary" type="submit">Entrar</button>
+      </form>
+
+      <p class="topbar-note">Conta inicial: <strong>admin</strong> / <strong>admin123</strong></p>
+    </section>
+  </main>
+
+  <script src="/assets/js/ui.js"></script>
+  <script>
+    const flash = document.getElementById('flash');
+    const publicBanner = document.getElementById('publicBanner');
+    const params = new URLSearchParams(location.search);
+    const error = params.get('error');
+    if (error) {
+      flash.className = 'flash error show';
+      flash.textContent = error;
+    }
+
+    getSession().then((session) => {
+      if (session.publicOpen) {
+        publicBanner.className = 'status-banner small show';
+        publicBanner.textContent = `O admin liberou o site pra todos até ${new Date(session.publicAccessUntil).toLocaleString('pt-BR')}.`;
+      }
+      if (session.authenticated) location.href = '/';
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      flash.className = 'flash';
+      const formData = new FormData(event.currentTarget);
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: formData.get('username'),
+          password: formData.get('password')
+        })
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        flash.className = 'flash error show';
+        flash.textContent = result.error || 'Falha no login.';
+        return;
+      }
+      location.href = '/';
+    });
+  </script>
+</body>
+</html>

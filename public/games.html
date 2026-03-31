@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogos • Batata Protected</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <canvas id="stars"></canvas>
+  <div class="noise"></div>
+  <div class="cursor-glow" id="cursorGlow"></div>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <header class="site-header">
+    <nav class="nav container">
+      <a href="/" class="brand"><span class="brand-icon"></span><span>Batata Protected</span></a>
+      <div class="nav-links">
+        <a href="/">Início</a>
+        <a class="active" href="/games">Jogos</a>
+        <a href="/jogo">Player</a>
+        <a href="/admin" id="adminLink" style="display:none;">Admin</a>
+        <button class="ghost-btn" id="logoutBtn">Sair</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <span class="hero-pill">Área protegida</span>
+      <h1>Catálogo fechado por autenticação</h1>
+      <p class="hero-text">Aqui você pode trocar esses cards pelos jogos reais do teu site. A proteção já está ligada na rota.</p>
+    </section>
+
+    <section class="grid grid-3 section">
+      <article class="card"><span class="mini-chip">Destaque</span><h2>Snow Rider</h2><p>Exemplo de card protegido por login.</p></article>
+      <article class="card"><span class="mini-chip">Destaque</span><h2>Drift Boss</h2><p>Outro exemplo só pra mostrar a área já fechada.</p></article>
+      <article class="card"><span class="mini-chip">Destaque</span><h2>Minecraft</h2><p>Depois dá pra puxar a tua lista real aqui dentro.</p></article>
+    </section>
+  </main>
+
+  <footer class="footer container">
+    <p>Catálogo protegido • Batata Protected</p>
+  </footer>
+
+  <script src="/assets/js/ui.js"></script>
+  <script>
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+    getSession().then((session) => {
+      if (session.user?.role === 'admin') document.getElementById('adminLink').style.display = 'inline-flex';
+    });
+  </script>
+</body>
+</html>
